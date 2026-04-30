@@ -29,9 +29,6 @@ export default function StudyPage({ params }: Props) {
     handleGrade,
   } = useSession(id);
 
-  console.log("summary", summary);
-
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">

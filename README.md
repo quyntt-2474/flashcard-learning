@@ -62,14 +62,14 @@ cd ../frontend && npm install
 
 **`backend/.env`**
 ```dotenv
-DATABASE_URL="postgresql://postgres:password@localhost:5432/flashcard_db"
-PORT=3001
-CORS_ORIGIN=http://localhost:3000
+DATABASE_URL=
+PORT=
+CORS_ORIGIN=
 ```
 
 **`frontend/.env.local`**
 ```dotenv
-NEXT_PUBLIC_API_BASE_URL=http://localhost:3001/api
+NEXT_PUBLIC_API_BASE_URL=
 ```
 
 ### 4. Khởi tạo database
