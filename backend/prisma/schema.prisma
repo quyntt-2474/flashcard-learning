@@ -1,0 +1,116 @@
+// Prisma schema for Flashcard English Learning App
+// Run: npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// Category — thematic grouping for decks
+// ─────────────────────────────────────────────
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  icon        String?
+  color       String?
+  isPreloaded Boolean  @default(false)
+  decks       Deck[]
+  createdAt   DateTime @default(now())
+
+  @@map("categories")
+}
+
+// ─────────────────────────────────────────────
+// Deck — collection of flashcards
+// ─────────────────────────────────────────────
+model Deck {
+  id          Int            @id @default(autoincrement())
+  title       String
+  description String?
+  isPreloaded Boolean        @default(false)
+  clientId    String
+  categoryId  Int?
+  category    Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  cards       Card[]
+  sessions    StudySession[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([clientId])
+  @@index([categoryId])
+  @@map("decks")
+}
+
+// ─────────────────────────────────────────────
+// Card — single flashcard with SM-2 state
+// ─────────────────────────────────────────────
+model Card {
+  id          Int          @id @default(autoincrement())
+  front       String
+  back        String
+  deckId      Int
+  deck        Deck         @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  clientId    String
+
+  // SM-2 scheduling state
+  easeFactor  Float        @default(2.5)
+  interval    Int          @default(1)
+  repetitions Int          @default(0)
+  dueDate     DateTime     @default(now())
+  isMastered  Boolean      @default(false)
+
+  reviews     CardReview[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([clientId, dueDate])
+  @@index([deckId])
+  @@map("cards")
+}
+
+// ─────────────────────────────────────────────
+// StudySession — one sitting of reviewing cards
+// ─────────────────────────────────────────────
+model StudySession {
+  id          Int          @id @default(autoincrement())
+  deckId      Int
+  deck        Deck         @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  clientId    String
+  startedAt   DateTime     @default(now())
+  completedAt DateTime?
+  reviews     CardReview[]
+
+  @@index([clientId])
+  @@index([deckId])
+  @@map("study_sessions")
+}
+
+// ─────────────────────────────────────────────
+// CardReview — single grade event within a session
+// ─────────────────────────────────────────────
+model CardReview {
+  id         Int          @id @default(autoincrement())
+  cardId     Int
+  card       Card         @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  sessionId  Int
+  session    StudySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  grade      Grade
+  reviewedAt DateTime     @default(now())
+  newDueDate DateTime
+
+  @@index([cardId])
+  @@index([sessionId])
+  @@map("card_reviews")
+}
+
+enum Grade {
+  AGAIN
+  HARD
+  GOOD
+  EASY
+}
