@@ -37,9 +37,6 @@ export class SessionsService {
         where: { deckId: dto.deckId },
         orderBy: { dueDate: 'asc' },
       });
-
-      console.log(nextCard);
-
       throw new UnprocessableEntityException({
         message: 'No cards are due for review today',
         nextDueDate: nextCard?.dueDate ?? null,
