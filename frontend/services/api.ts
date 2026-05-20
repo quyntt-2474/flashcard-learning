@@ -1,8 +1,9 @@
 import axios from "axios";
 import { getOrCreateClientId } from "@/lib/clientId";
+console.log(process.env.NEXT_PUBLIC_API_URL);
 
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL
 });
 
 api.interceptors.request.use((config) => {
@@ -107,6 +108,8 @@ export interface ProgressData {
 export const categoriesApi = {
   list: () =>
     api.get<Category[]>("/categories").then((r) => {
+      console.log(r);
+
 
       return r.data;
     }),

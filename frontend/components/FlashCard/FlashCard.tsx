@@ -1,24 +1,14 @@
 "use client";
 
-import { useState } from "react";
-
 interface Props {
   front: string;
   back: string;
+  revealed: boolean;
   onReveal?: () => void;
 }
 
-export default function FlashCard({ front, back, onReveal }: Props) {
-  const [revealed, setRevealed] = useState(false);
-  const [prevFront, setPrevFront] = useState(front);
-
-  if (prevFront !== front) {
-    setPrevFront(front);
-    setRevealed(false);
-  }
-
+export default function FlashCard({ front, back, revealed, onReveal }: Props) {
   const handleReveal = () => {
-    setRevealed(true);
     onReveal?.();
   };
 
