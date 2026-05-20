@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect } from "react";
 import { useSession } from "@/hooks/useSession";
 import FlashCard from "@/components/FlashCard/FlashCard";
 import GradeBar from "@/components/GradeBar/GradeBar";
@@ -28,6 +28,23 @@ export default function StudyPage({ params }: Props) {
     handleReveal,
     handleGrade,
   } = useSession(id);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+      if (!revealed && e.key === " ") {
+        e.preventDefault();
+        handleReveal();
+      } else if (revealed && (e.key === "Enter" || e.key === "ArrowRight")) {
+        e.preventDefault();
+        handleGrade("GOOD");
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [revealed, handleReveal, handleGrade]);
 
   if (isLoading) {
     return (
@@ -75,6 +92,7 @@ export default function StudyPage({ params }: Props) {
       <FlashCard
         front={currentCard.front}
         back={currentCard.back}
+        revealed={revealed}
         onReveal={handleReveal}
       />
 

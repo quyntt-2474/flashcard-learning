@@ -1,4 +1,5 @@
 # Flashcard English Learning App
+_DEMO KHÓA HỌC AGENTIC CODING COURSE_
 
 Ứng dụng học từ vựng tiếng Anh sử dụng thẻ ghi nhớ (flashcard) kết hợp thuật toán lặp lại ngắt quãng (Spaced Repetition — SM-2). Người dùng có thể tự tạo bộ thẻ, học theo phiên, tự đánh giá mức độ nhớ và theo dõi tiến trình — hoàn toàn không cần đăng nhập.
 
