@@ -1,6 +1,6 @@
 ---
 description: Create or update the feature specification from a natural language feature description.
-handoffs: 
+handoffs:
   - label: Build Technical Plan
     agent: speckit.plan
     prompt: Create a plan for the spec. I am building with...
@@ -107,9 +107,16 @@ Given that feature description, do this:
    - The spec directory name and the git branch name are independent — they may be the same but that is the user's choice
    - The spec directory and file are always created by this command, never by the hook
 
-4. Load `.specify/templates/spec-template.md` to understand required sections.
+4. **Load existing context** before generating:
+   - If `specs/spec-summary.md` exists, read it to understand:
+     - Existing entities and their definitions (avoid naming conflicts)
+     - Existing terminology (use the same canonical terms)
+     - Existing FR/SC numbering (new spec will be merged later; note any overlap areas)
+   - If `specs/spec-summary.md` does not exist, skip silently.
 
-5. Follow this execution flow:
+5. Load `.specify/templates/spec-template.md` to understand required sections.
+
+6. Follow this execution flow:
     1. Parse user description from arguments
        If empty: ERROR "No feature description provided"
     2. Extract key concepts from description
@@ -142,20 +149,20 @@ Given that feature description, do this:
 
       ```markdown
       # Specification Quality Checklist: [FEATURE NAME]
-      
+
       **Purpose**: Validate specification completeness and quality before proceeding to planning
       **Created**: [DATE]
       **Feature**: [Link to spec.md]
-      
+
       ## Content Quality
-      
+
       - [ ] No implementation details (languages, frameworks, APIs)
       - [ ] Focused on user value and business needs
       - [ ] Written for non-technical stakeholders
       - [ ] All mandatory sections completed
-      
+
       ## Requirement Completeness
-      
+
       - [ ] No [NEEDS CLARIFICATION] markers remain
       - [ ] Requirements are testable and unambiguous
       - [ ] Success criteria are measurable
@@ -164,16 +171,16 @@ Given that feature description, do this:
       - [ ] Edge cases are identified
       - [ ] Scope is clearly bounded
       - [ ] Dependencies and assumptions identified
-      
+
       ## Feature Readiness
-      
+
       - [ ] All functional requirements have clear acceptance criteria
       - [ ] User scenarios cover primary flows
       - [ ] Feature meets measurable outcomes defined in Success Criteria
       - [ ] No implementation details leak into specification
-      
+
       ## Notes
-      
+
       - Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`
       ```
 
@@ -198,20 +205,20 @@ Given that feature description, do this:
 
            ```markdown
            ## Question [N]: [Topic]
-           
+
            **Context**: [Quote relevant spec section]
-           
+
            **What we need to know**: [Specific question from NEEDS CLARIFICATION marker]
-           
+
            **Suggested Answers**:
-           
+
            | Option | Answer | Implications |
            |--------|--------|--------------|
            | A      | [First suggested answer] | [What this means for the feature] |
            | B      | [Second suggested answer] | [What this means for the feature] |
            | C      | [Third suggested answer] | [What this means for the feature] |
            | Custom | Provide your own answer | [Explain how to provide custom input] |
-           
+
            **Your choice**: _[Wait for user response]_
            ```
 
@@ -228,13 +235,25 @@ Given that feature description, do this:
 
    d. **Update Checklist**: After each validation iteration, update the checklist file with current pass/fail status
 
-8. **Report completion** to the user with:
+8. **Update `specs/spec-summary.md`** (consolidated spec):
+   - Read all `specs/*/spec.md` files, ordered by directory name ascending (so higher-numbered features override earlier ones on conflicts).
+   - Merge them into `specs/spec-summary.md` following these rules:
+     - Update the `**Last updated**` header to today's date.
+     - User Stories: include all stories from all features; update any story that was modified by a later feature.
+     - Functional Requirements: later features override conflicting FRs from earlier ones; renumber sequentially (FR-001, FR-002, …).
+     - Key Entities: merge; later features' entity definitions override earlier ones for the same entity name.
+     - Success Criteria: merge and renumber sequentially; later features override conflicting SCs.
+     - Edge Cases: union of all edge cases; remove duplicates.
+     - Assumptions: union; later features override conflicting assumptions.
+   - Write the merged result to `specs/spec-summary.md`.
+
+9. **Report completion** to the user with:
    - `SPECIFY_FEATURE_DIRECTORY` — the feature directory path
    - `SPEC_FILE` — the spec file path
    - Checklist results summary
    - Readiness for the next phase (`/speckit.clarify` or `/speckit.plan`)
 
-9. **Check for extension hooks**: After reporting completion, check if `.specify/extensions.yml` exists in the project root.
+10. **Check for extension hooks**: After reporting completion, check if `.specify/extensions.yml` exists in the project root.
    - If it exists, read it and look for entries under the `hooks.after_specify` key
    - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
    - Filter out hooks where `enabled` is explicitly `false`. Treat hooks without an `enabled` field as enabled by default.
