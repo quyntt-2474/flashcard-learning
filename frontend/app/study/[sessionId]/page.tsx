@@ -31,21 +31,19 @@ export default function StudyPage({ params }: Props) {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      console.log(e.key);
-
       const tag = (e.target as HTMLElement).tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
 
-      if (!revealed && e.key === ' ') {
+      if (!revealed && e.key === " ") {
         e.preventDefault();
         handleReveal();
-      } else if (revealed && (e.key === 'Enter' || e.key === 'ArrowRight')) {
+      } else if (revealed && (e.key === "Enter" || e.key === "ArrowRight")) {
         e.preventDefault();
-        handleGrade('GOOD');
+        handleGrade("GOOD");
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [revealed, handleReveal, handleGrade]);
 
   if (isLoading) {
