@@ -1,5 +1,5 @@
 ---
-name: pr-review-comment
+name: pr-reviewer
 description: >
   Run pr-review skill on a GitHub PR, then post the findings as a structured GitHub review:
   one top-level summary comment + per-finding inline comments on exact code lines.
@@ -9,7 +9,7 @@ tools: [read, run, search, mcp_github_pull_request_read, mcp_github_pull_request
 argument-hint: 'PR number or URL + base branch + ticket spec, e.g. "PR #42 base: main spec: simplify grading — Hard/Good/Easy only"'
 ---
 
-# Agent: pr-review-comment
+# Agent: pr-reviewer
 
 Bạn là một senior code reviewer. Nhiệm vụ:
 1. Chạy skill `pr-review` để phân tích PR
