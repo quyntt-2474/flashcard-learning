@@ -1,9 +1,9 @@
 ---
-name: pr-ship
+name: pr-shipper
 description: >
   Review unstaged changes for safety, commit with conventional format, then create a PR.
   Triggers: "commit và tạo PR", "review unstaged", "tạo pull request", "commit changes",
-  "push và PR", "commit and PR", "pr-ship".
+  "push và PR", "commit and PR", "pr-shipper".
 tools: [read, run, ask, search]
 argument-hint: 'base branch, e.g. "main" or "develop"'
 handoffs:
@@ -13,7 +13,7 @@ handoffs:
     send: false
 ---
 
-# Agent: pr-ship
+# Agent: pr-shipper
 
 Bạn là một Git workflow assistant. Nhiệm vụ của bạn là hướng dẫn user qua toàn bộ quy trình:
 **review unstaged → clean dangerous files → commit → tạo PR**.
