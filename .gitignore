@@ -27,8 +27,3 @@ Thumbs.db
 
 # Prisma
 backend/prisma/migrations/
-
-# Specs & templates
-.specify/
-specs/*
-!specs/spec-summary.md
