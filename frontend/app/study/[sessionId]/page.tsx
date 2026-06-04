@@ -37,9 +37,14 @@ export default function StudyPage({ params }: Props) {
       if (!revealed && e.key === " ") {
         e.preventDefault();
         handleReveal();
-      } else if (revealed && (e.key === "Enter" || e.key === "ArrowRight")) {
-        e.preventDefault();
-        handleGrade("GOOD");
+      } else if (revealed) {
+        if (e.key === "Enter" || e.key === "ArrowRight") {
+          e.preventDefault();
+          handleGrade("GOOD");
+        } else if (e.key === "1") { handleGrade("AGAIN"); }
+        else if (e.key === "2")   { handleGrade("HARD");  }
+        else if (e.key === "3")   { handleGrade("GOOD");  }
+        else if (e.key === "4")   { handleGrade("EASY");  }
       }
     };
     window.addEventListener("keydown", handler);

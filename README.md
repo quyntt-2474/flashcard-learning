@@ -1,4 +1,5 @@
 # Flashcard English Learning App
+
 _DEMO KHÓA HỌC AGENTIC CODING COURSE_
 
 Ứng dụng học từ vựng tiếng Anh sử dụng thẻ ghi nhớ (flashcard) kết hợp thuật toán lặp lại ngắt quãng (Spaced Repetition — SM-2). Người dùng có thể tự tạo bộ thẻ, học theo phiên, tự đánh giá mức độ nhớ và theo dõi tiến trình — hoàn toàn không cần đăng nhập.
@@ -16,27 +17,36 @@ _DEMO KHÓA HỌC AGENTIC CODING COURSE_
 
 ---
 
+### Điểm đánh giá của thuật toán SM-2
+
+| Grade | Ý nghĩa                                          |
+| ----- | ------------------------------------------------ |
+| Again | Không nhớ — reset về đầu, ôn lại ngay            |
+| Hard  | Nhớ nhưng khó, cần ôn sớm                        |
+| Good  | Nhớ bình thường                                  |
+| Easy  | Nhớ rất dễ, khoảng cách tăng nhanh               |
+
 ## Tech Stack
 
-| Layer | Công nghệ |
-|-------|-----------|
-| Backend | NestJS 11, TypeScript 5, Node.js ≥ 20 LTS |
-| Frontend | Next.js 15 (App Router), React 19, TypeScript 5 |
-| Database | PostgreSQL 17 + Prisma 6 ORM |
-| Styling | Tailwind CSS 4 |
-| State | TanStack Query 5 |
-| Testing | Jest, Supertest, React Testing Library, Playwright |
+| Layer    | Công nghệ                                          |
+| -------- | -------------------------------------------------- |
+| Backend  | NestJS 11, TypeScript 5, Node.js ≥ 20 LTS          |
+| Frontend | Next.js 15 (App Router), React 19, TypeScript 5    |
+| Database | PostgreSQL 17 + Prisma 6 ORM                       |
+| Styling  | Tailwind CSS 4                                     |
+| State    | TanStack Query 5                                   |
+| Testing  | Jest, Supertest, React Testing Library, Playwright |
 
 ---
 
 ## Yêu cầu hệ thống
 
-| Công cụ | Phiên bản tối thiểu |
-|---------|---------------------|
-| Node.js | 20 LTS |
-| npm | 10 |
-| PostgreSQL | 17 |
-| Git | bất kỳ |
+| Công cụ    | Phiên bản tối thiểu |
+| ---------- | ------------------- |
+| Node.js    | 20 LTS              |
+| npm        | 10                  |
+| PostgreSQL | 17                  |
+| Git        | bất kỳ              |
 
 ---
 
@@ -62,6 +72,7 @@ cd ../frontend && npm install
 ### 3. Cấu hình biến môi trường
 
 **`backend/.env`**
+
 ```dotenv
 DATABASE_URL=
 PORT=
@@ -69,6 +80,7 @@ CORS_ORIGIN=
 ```
 
 **`frontend/.env.local`**
+
 ```dotenv
 NEXT_PUBLIC_API_BASE_URL=
 ```
@@ -193,15 +205,15 @@ flashcard-learning/
 
 Backend cung cấp REST API trên base path `/api`. Một số endpoint chính:
 
-| Method | Endpoint | Mô tả |
-|--------|----------|-------|
-| `GET` | `/api/categories` | Danh sách chủ đề |
-| `GET` | `/api/decks` | Danh sách bộ thẻ của client |
-| `POST` | `/api/decks` | Tạo bộ thẻ mới |
-| `GET` | `/api/decks/:id/cards` | Danh sách thẻ trong bộ |
-| `POST` | `/api/sessions` | Bắt đầu phiên học |
-| `POST` | `/api/sessions/:id/grade` | Chấm điểm thẻ (SM-2) |
-| `GET` | `/api/progress` | Thống kê tiến trình & CEFR |
+| Method | Endpoint                  | Mô tả                       |
+| ------ | ------------------------- | --------------------------- |
+| `GET`  | `/api/categories`         | Danh sách chủ đề            |
+| `GET`  | `/api/decks`              | Danh sách bộ thẻ của client |
+| `POST` | `/api/decks`              | Tạo bộ thẻ mới              |
+| `GET`  | `/api/decks/:id/cards`    | Danh sách thẻ trong bộ      |
+| `POST` | `/api/sessions`           | Bắt đầu phiên học           |
+| `POST` | `/api/sessions/:id/grade` | Chấm điểm thẻ (SM-2)        |
+| `GET`  | `/api/progress`           | Thống kê tiến trình & CEFR  |
 
 > Mọi request cần đính kèm header `X-Client-ID: <uuid>` để phân tách dữ liệu.
 
