@@ -21,10 +21,10 @@ describe('CategoriesController', () => {
     controller = module.get<CategoriesController>(CategoriesController);
   });
 
-  it('findAll delegates to service', async () => {
+  it('findAll delegates to service with clientId', async () => {
     mockCategoriesService.findAll.mockResolvedValue([{ id: 1, name: 'A1' }]);
-    const result = await controller.findAll();
-    expect(mockCategoriesService.findAll).toHaveBeenCalled();
+    const result = await controller.findAll('c1');
+    expect(mockCategoriesService.findAll).toHaveBeenCalledWith('c1');
     expect(result).toHaveLength(1);
   });
 

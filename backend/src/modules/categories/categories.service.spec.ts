@@ -26,14 +26,26 @@ describe('CategoriesService', () => {
     it('returns categories with deck count', async () => {
       mockPrisma.category.findMany.mockResolvedValue([{ id: 1, name: 'A1' }]);
       mockPrisma.deck.count.mockResolvedValue(3);
-      const result = await service.findAll();
+      const result = await service.findAll('client-1');
       expect(result).toHaveLength(1);
       expect(result[0]).toHaveProperty('deckCount', 3);
     });
 
+    it('filters deck count by clientId and isPreloaded', async () => {
+      mockPrisma.category.findMany.mockResolvedValue([{ id: 1, name: 'A1' }]);
+      mockPrisma.deck.count.mockResolvedValue(2);
+      await service.findAll('client-1');
+      expect(mockPrisma.deck.count).toHaveBeenCalledWith({
+        where: {
+          categoryId: 1,
+          OR: [{ clientId: 'client-1' }, { isPreloaded: true }],
+        },
+      });
+    });
+
     it('returns empty array when no categories', async () => {
       mockPrisma.category.findMany.mockResolvedValue([]);
-      const result = await service.findAll();
+      const result = await service.findAll('client-1');
       expect(result).toEqual([]);
     });
   });
