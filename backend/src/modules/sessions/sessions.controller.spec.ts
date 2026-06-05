@@ -26,7 +26,10 @@ describe('SessionsController', () => {
     const session = { id: 1, dueCards: [] };
     mockSessionsService.create.mockResolvedValue(session);
     const result = await controller.create({ deckId: 1 }, 'c1');
-    expect(mockSessionsService.create).toHaveBeenCalledWith({ deckId: 1 }, 'c1');
+    expect(mockSessionsService.create).toHaveBeenCalledWith(
+      { deckId: 1 },
+      'c1',
+    );
     expect(result).toEqual(session);
   });
 

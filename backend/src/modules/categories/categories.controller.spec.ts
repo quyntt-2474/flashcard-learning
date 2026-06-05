@@ -14,7 +14,9 @@ describe('CategoriesController', () => {
     jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CategoriesController],
-      providers: [{ provide: CategoriesService, useValue: mockCategoriesService }],
+      providers: [
+        { provide: CategoriesService, useValue: mockCategoriesService },
+      ],
     }).compile();
     controller = module.get<CategoriesController>(CategoriesController);
   });
@@ -29,7 +31,10 @@ describe('CategoriesController', () => {
   it('findDecks delegates to service', async () => {
     mockCategoriesService.findDecksInCategory.mockResolvedValue([]);
     const result = await controller.findDecks(1, 'c1');
-    expect(mockCategoriesService.findDecksInCategory).toHaveBeenCalledWith(1, 'c1');
+    expect(mockCategoriesService.findDecksInCategory).toHaveBeenCalledWith(
+      1,
+      'c1',
+    );
     expect(result).toEqual([]);
   });
 });

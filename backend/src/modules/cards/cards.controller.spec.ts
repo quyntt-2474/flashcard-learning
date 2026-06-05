@@ -32,7 +32,11 @@ describe('CardsController', () => {
     const card = { id: 1, front: 'Q', back: 'A' };
     mockCardsService.create.mockResolvedValue(card);
     const result = await controller.create(1, { front: 'Q', back: 'A' }, 'c1');
-    expect(mockCardsService.create).toHaveBeenCalledWith(1, { front: 'Q', back: 'A' }, 'c1');
+    expect(mockCardsService.create).toHaveBeenCalledWith(
+      1,
+      { front: 'Q', back: 'A' },
+      'c1',
+    );
     expect(result).toEqual(card);
   });
 
@@ -40,7 +44,11 @@ describe('CardsController', () => {
     const card = { id: 1, front: 'Updated' };
     mockCardsService.update.mockResolvedValue(card);
     const result = await controller.update(1, { front: 'Updated' }, 'c1');
-    expect(mockCardsService.update).toHaveBeenCalledWith(1, { front: 'Updated' }, 'c1');
+    expect(mockCardsService.update).toHaveBeenCalledWith(
+      1,
+      { front: 'Updated' },
+      'c1',
+    );
     expect(result).toEqual(card);
   });
 

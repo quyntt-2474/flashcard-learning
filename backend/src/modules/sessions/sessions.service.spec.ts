@@ -49,7 +49,11 @@ describe('SessionsService', () => {
       const dueCards = [{ id: 1, front: 'Q', back: 'A', dueDate: new Date() }];
       mockPrisma.deck.findFirst.mockResolvedValue({ id: 1 });
       mockPrisma.card.findMany.mockResolvedValue(dueCards);
-      mockPrisma.studySession.create.mockResolvedValue({ id: 1, deckId: 1, clientId: 'c1' });
+      mockPrisma.studySession.create.mockResolvedValue({
+        id: 1,
+        deckId: 1,
+        clientId: 'c1',
+      });
       const result = await service.create({ deckId: 1 }, 'c1');
       expect(result).toHaveProperty('dueCards', dueCards);
       expect(result.id).toBe(1);
@@ -57,14 +61,18 @@ describe('SessionsService', () => {
 
     it('throws NotFoundException when deck not found', async () => {
       mockPrisma.deck.findFirst.mockResolvedValue(null);
-      await expect(service.create({ deckId: 1 }, 'c1')).rejects.toThrow(NotFoundException);
+      await expect(service.create({ deckId: 1 }, 'c1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('throws UnprocessableEntityException when no due cards (no next card)', async () => {
       mockPrisma.deck.findFirst.mockResolvedValue({ id: 1 });
       mockPrisma.card.findMany.mockResolvedValue([]);
       mockPrisma.card.findFirst.mockResolvedValue(null);
-      await expect(service.create({ deckId: 1 }, 'c1')).rejects.toThrow(UnprocessableEntityException);
+      await expect(service.create({ deckId: 1 }, 'c1')).rejects.toThrow(
+        UnprocessableEntityException,
+      );
     });
 
     it('throws UnprocessableEntityException when no due cards (with next card)', async () => {
@@ -72,7 +80,9 @@ describe('SessionsService', () => {
       mockPrisma.deck.findFirst.mockResolvedValue({ id: 1 });
       mockPrisma.card.findMany.mockResolvedValue([]);
       mockPrisma.card.findFirst.mockResolvedValue({ dueDate: nextDue });
-      await expect(service.create({ deckId: 1 }, 'c1')).rejects.toThrow(UnprocessableEntityException);
+      await expect(service.create({ deckId: 1 }, 'c1')).rejects.toThrow(
+        UnprocessableEntityException,
+      );
     });
   });
 
@@ -82,8 +92,18 @@ describe('SessionsService', () => {
         id: 1,
         deckId: 1,
         startedAt: new Date(),
-        reviews: [{ cardId: 1, grade: 'GOOD', reviewedAt: new Date(), newDueDate: new Date() }],
-        deck: { id: 1, cards: [{ id: 1, front: 'Q', back: 'A', dueDate: new Date() }] },
+        reviews: [
+          {
+            cardId: 1,
+            grade: 'GOOD',
+            reviewedAt: new Date(),
+            newDueDate: new Date(),
+          },
+        ],
+        deck: {
+          id: 1,
+          cards: [{ id: 1, front: 'Q', back: 'A', dueDate: new Date() }],
+        },
       };
       mockPrisma.studySession.findFirst.mockResolvedValue(session);
       mockPrisma.card.count.mockResolvedValue(3);
@@ -109,11 +129,23 @@ describe('SessionsService', () => {
     };
 
     it('submits a review and returns updated card state', async () => {
-      mockPrisma.studySession.findFirst.mockResolvedValue({ id: 1, completedAt: null });
-      mockPrisma.card.findUnique.mockResolvedValue({ id: 1, easeFactor: 2.5, interval: 1, repetitions: 0 });
+      mockPrisma.studySession.findFirst.mockResolvedValue({
+        id: 1,
+        completedAt: null,
+      });
+      mockPrisma.card.findUnique.mockResolvedValue({
+        id: 1,
+        easeFactor: 2.5,
+        interval: 1,
+        repetitions: 0,
+      });
       mockSm2.calculate.mockReturnValue(sm2Result);
       mockPrisma.$transaction.mockResolvedValue([]);
-      const result = await service.submitReview(1, { cardId: 1, grade: GradeEnum.GOOD }, 'c1');
+      const result = await service.submitReview(
+        1,
+        { cardId: 1, grade: GradeEnum.GOOD },
+        'c1',
+      );
       expect(result).toHaveProperty('cardId', 1);
       expect(result).toHaveProperty('grade', 'GOOD');
       expect(result).toHaveProperty('isMastered', false);
@@ -121,18 +153,30 @@ describe('SessionsService', () => {
 
     it('throws NotFoundException when session not found', async () => {
       mockPrisma.studySession.findFirst.mockResolvedValue(null);
-      await expect(service.submitReview(1, { cardId: 1, grade: GradeEnum.GOOD }, 'c1')).rejects.toThrow(NotFoundException);
+      await expect(
+        service.submitReview(1, { cardId: 1, grade: GradeEnum.GOOD }, 'c1'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('throws BadRequestException when session already completed', async () => {
-      mockPrisma.studySession.findFirst.mockResolvedValue({ id: 1, completedAt: new Date() });
-      await expect(service.submitReview(1, { cardId: 1, grade: GradeEnum.GOOD }, 'c1')).rejects.toThrow(BadRequestException);
+      mockPrisma.studySession.findFirst.mockResolvedValue({
+        id: 1,
+        completedAt: new Date(),
+      });
+      await expect(
+        service.submitReview(1, { cardId: 1, grade: GradeEnum.GOOD }, 'c1'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('throws NotFoundException when card not found', async () => {
-      mockPrisma.studySession.findFirst.mockResolvedValue({ id: 1, completedAt: null });
+      mockPrisma.studySession.findFirst.mockResolvedValue({
+        id: 1,
+        completedAt: null,
+      });
       mockPrisma.card.findUnique.mockResolvedValue(null);
-      await expect(service.submitReview(1, { cardId: 1, grade: GradeEnum.GOOD }, 'c1')).rejects.toThrow(NotFoundException);
+      await expect(
+        service.submitReview(1, { cardId: 1, grade: GradeEnum.GOOD }, 'c1'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -157,7 +201,10 @@ describe('SessionsService', () => {
     });
 
     it('returns 0 accuracy for empty session', async () => {
-      mockPrisma.studySession.findFirst.mockResolvedValue({ id: 1, reviews: [] });
+      mockPrisma.studySession.findFirst.mockResolvedValue({
+        id: 1,
+        reviews: [],
+      });
       mockPrisma.studySession.update.mockResolvedValue({});
       const result = await service.complete(1, 'c1');
       expect(result.accuracyPercent).toBe(0);
@@ -165,7 +212,9 @@ describe('SessionsService', () => {
 
     it('throws NotFoundException when session not found', async () => {
       mockPrisma.studySession.findFirst.mockResolvedValue(null);
-      await expect(service.complete(1, 'c1')).rejects.toThrow(NotFoundException);
+      await expect(service.complete(1, 'c1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

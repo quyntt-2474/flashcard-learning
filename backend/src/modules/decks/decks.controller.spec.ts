@@ -47,7 +47,10 @@ describe('DecksController', () => {
     const deck = { id: 1, title: 'New', cardCount: 0 };
     mockDecksService.create.mockResolvedValue(deck);
     const result = await controller.create({ title: 'New' }, 'c1');
-    expect(mockDecksService.create).toHaveBeenCalledWith({ title: 'New' }, 'c1');
+    expect(mockDecksService.create).toHaveBeenCalledWith(
+      { title: 'New' },
+      'c1',
+    );
     expect(result).toEqual(deck);
   });
 
@@ -55,7 +58,11 @@ describe('DecksController', () => {
     const deck = { id: 1, title: 'Updated' };
     mockDecksService.update.mockResolvedValue(deck);
     const result = await controller.update(1, { title: 'Updated' }, 'c1');
-    expect(mockDecksService.update).toHaveBeenCalledWith(1, { title: 'Updated' }, 'c1');
+    expect(mockDecksService.update).toHaveBeenCalledWith(
+      1,
+      { title: 'Updated' },
+      'c1',
+    );
     expect(result).toEqual(deck);
   });
 

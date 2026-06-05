@@ -78,7 +78,9 @@ describe('ProgressService', () => {
     });
 
     it('computes cefrLevel for 0% accuracy (A1)', async () => {
-      mockPrisma.cardReview.findMany.mockResolvedValue(makeReviews(20, 'AGAIN'));
+      mockPrisma.cardReview.findMany.mockResolvedValue(
+        makeReviews(20, 'AGAIN'),
+      );
       mockPrisma.card.count.mockResolvedValue(0);
       mockPrisma.card.findFirst.mockResolvedValue(null);
       mockPrisma.studySession.findMany.mockResolvedValue([]);
@@ -91,7 +93,10 @@ describe('ProgressService', () => {
       // 10 recent GOOD + 10 old AGAIN → weighted: 20 correct / 30 total ≈ 67% → B2
       const recentGood = makeReviews(10, 'GOOD', 0);
       const oldAgain = makeReviews(10, 'AGAIN', 40);
-      mockPrisma.cardReview.findMany.mockResolvedValue([...recentGood, ...oldAgain]);
+      mockPrisma.cardReview.findMany.mockResolvedValue([
+        ...recentGood,
+        ...oldAgain,
+      ]);
       mockPrisma.card.count.mockResolvedValue(0);
       mockPrisma.card.findFirst.mockResolvedValue(null);
       mockPrisma.studySession.findMany.mockResolvedValue([]);
@@ -156,7 +161,9 @@ describe('ProgressService', () => {
       mockPrisma.cardReview.findMany.mockResolvedValue([]);
       mockPrisma.card.count.mockResolvedValue(0);
       mockPrisma.card.findFirst.mockResolvedValue(null);
-      mockPrisma.studySession.findMany.mockResolvedValue([{ completedAt: twoDaysAgo }]);
+      mockPrisma.studySession.findMany.mockResolvedValue([
+        { completedAt: twoDaysAgo },
+      ]);
       const result = await service.getProgress('client-1');
       expect(result.studyStreakDays).toBe(0);
     });

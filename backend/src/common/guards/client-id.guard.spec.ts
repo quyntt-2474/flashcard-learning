@@ -1,14 +1,14 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ExecutionContext } from '@nestjs/common';
 import { ClientIdGuard } from './client-id.guard';
 
-function makeContext(clientId?: string) {
+function makeContext(clientId?: string): ExecutionContext {
   return {
     switchToHttp: () => ({
       getRequest: () => ({
         headers: clientId ? { 'x-client-id': clientId } : {},
       }),
     }),
-  } as any;
+  } as unknown as ExecutionContext;
 }
 
 describe('ClientIdGuard', () => {
