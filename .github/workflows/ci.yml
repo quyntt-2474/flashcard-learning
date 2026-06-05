@@ -1,0 +1,215 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# CI — SDD Validation Gates
+#
+# SDD Source:  specs/spec-summary.md  |  .specify/memory/constitution.md
+# Triggers:    pull_request → main, develop    |  push → main, develop  |  workflow_call (from cd.yml)
+#
+# Gate map
+# ──────────────────────────────────────────────────────────────────────────────
+# Gate 1 · Lint & Type Check        Constitution § Quality Gates (zero lint errors)
+# Gate 2 · Unit Tests + SM-2 ≥ 80%  Constitution § Quality Gates (coverage ≥ 80%)
+# Gate 3 · Frontend Build            US1–US4: every story requires a working frontend
+# Gate 4 · OWASP Security Audit      Constitution § Quality Gates (no HIGH/CRITICAL)
+# Gate 5 · Docker Build              Verifies images build before pushing to ECR
+# ═══════════════════════════════════════════════════════════════════════════════
+
+name: CI — SDD Validation Gates
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  workflow_call:   # Callable from cd.yml so CD never skips the gates
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Gate 1 · Lint & Type Check
+  # SDD ref: Constitution § Quality Gates — "Linting and formatting checks pass
+  #          (zero errors, warnings allowed only for TODO items)"
+  # ─────────────────────────────────────────────────────────────────────────────
+  gate-1-lint-typecheck:
+    name: "Gate 1 · Lint & Type Check"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace: [backend, frontend]
+    defaults:
+      run:
+        working-directory: ${{ matrix.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.workspace }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (zero errors enforced)
+        run: npm run lint
+
+      - name: TypeScript type check
+        if: matrix.workspace == 'backend'
+        run: npx tsc --noEmit
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Gate 2 · Unit Tests & SM-2 Coverage ≥ 80%
+  # SDD ref: Constitution § Quality Gates — "Unit test coverage ≥ 80% for
+  #          scheduling module."  (core/sm2/sm2.service.ts)
+  # ─────────────────────────────────────────────────────────────────────────────
+  gate-2-unit-tests:
+    name: "Gate 2 · Unit Tests & SM-2 Coverage ≥ 80%"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage (threshold ≥ 80 lines)
+        run: |
+          npm run test:cov -- \
+            --coverageThreshold='{"global":{"lines":80,"functions":80,"statements":80}}'
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage-${{ github.sha }}
+          path: backend/coverage/
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Gate 3 · Frontend Build
+  # SDD ref: US1 (study loop), US2 (deck management), US3 (progress),
+  #          US4 (due badge) — all user stories require a functional frontend.
+  # ─────────────────────────────────────────────────────────────────────────────
+  gate-3-frontend-build:
+    name: "Gate 3 · Frontend Build (Next.js)"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js (standalone output)
+        run: npm run build
+        env:
+          # Placeholder — set real URL in GitHub Actions variables
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:3000' }}
+
+      - name: Upload .next build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-next-${{ github.sha }}
+          path: frontend/.next/
+          retention-days: 1
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Gate 4 · OWASP Dependency Security Audit
+  # SDD ref: Constitution § Quality Gates — "No open HIGH or CRITICAL severity
+  #          security issues (OWASP Top 10 scan)"
+  # ─────────────────────────────────────────────────────────────────────────────
+  gate-4-security-audit:
+    name: "Gate 4 · OWASP Security Audit"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace: [backend, frontend]
+    defaults:
+      run:
+        working-directory: ${{ matrix.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.workspace }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: npm audit — block on HIGH or CRITICAL
+        # --omit=dev: only production dependencies matter in runtime images
+        run: npm audit --audit-level=high --omit=dev
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Gate 5 · Docker Image Build
+  # Validates both Dockerfiles build cleanly before any push to ECR.
+  # Uses GitHub Actions cache to keep build times low.
+  # ─────────────────────────────────────────────────────────────────────────────
+  gate-5-docker-build:
+    name: "Gate 5 · Docker Build (${{ matrix.service }})"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: backend
+            context: ./backend
+            dockerfile: ./backend/Dockerfile
+          - service: frontend
+            context: ./frontend
+            dockerfile: ./frontend/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build ${{ matrix.service }} image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: false
+          # Layer cache keyed per service — reused across workflow runs
+          cache-from: type=gha,scope=docker-${{ matrix.service }}
+          cache-to:   type=gha,mode=max,scope=docker-${{ matrix.service }}
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Summary — all gates must pass before the PR is mergeable
+  # Used as a single required status check in branch protection rules.
+  # ─────────────────────────────────────────────────────────────────────────────
+  ci-passed:
+    name: "✅ All SDD Gates Passed"
+    needs:
+      - gate-1-lint-typecheck
+      - gate-2-unit-tests
+      - gate-3-frontend-build
+      - gate-4-security-audit
+      - gate-5-docker-build
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All 5 SDD validation gates passed — safe to deploy."
