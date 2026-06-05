@@ -288,44 +288,65 @@ git diff <base_branch>..<compare_branch> -- . \
 
 ---
 
+## Bước 10.4 — Review PR description
+
+Hiển thị toàn bộ PR description đã điền dưới dạng **markdown render** để user đọc và duyệt:
+
+```
+📋 PR Description preview:
+
+---
+<render nội dung đã fill ở Bước 10.3>
+---
+
+Bạn có approve description này không? [Y/n/edit]
+```
+
+- **Y**: tiếp tục push và tạo PR
+- **N**: dừng, không tạo PR
+- **edit**: hỏi user muốn sửa phần nào, chỉnh sửa rồi hiển thị lại để confirm
+
+---
+
 ## Bước 11 — Push và tạo PR
 
 ### Push branch lên remote
-```bash
-git push origin <compare_branch>
+
+Dùng GitKraken MCP:
+```
+gitkraken/git_push({ directory: "<repo_path>" })
 ```
 
-Nếu push fail (branch chưa có remote):
+Nếu push fail do chưa có upstream, thử lại với terminal:
 ```bash
 git push --set-upstream origin <compare_branch>
 ```
 
-### Lấy GitHub author info
+### Tạo PR qua GitHub CLI
+
 ```bash
-git log -1 --format="%ae"    # email của commit cuối
-```
-
-Dùng email để map với GitHub username qua MCP GitHub tool:
-```
-mcp_github_search_users({ query: "<email>" })
-```
-
-### Tạo PR qua MCP GitHub
-```
-mcp_github_create_pull_request({
-  owner:  "<repo_owner>",
-  repo:   "<repo_name>",
-  title:  "<commit_message_without_type_prefix>",
-  head:   "<compare_branch>",
-  base:   "<base_branch>",
-  body:   "<filled_pr_template>",
-  assignees: ["<github_username_of_author>"]
-})
+gh pr create \
+  --base <base_branch> \
+  --head <compare_branch> \
+  --title "<title>" \
+  --body "<filled_pr_template>"
 ```
 
 **Title format**: Lấy từ commit message, bỏ `type:` prefix:
 ```
 feat: #2 simplify study grading  →  #2 simplify study grading
+```
+
+Nếu `gh` chưa được auth, hướng dẫn user:
+```bash
+gh auth login
+```
+
+### Fallback — Tạo PR thủ công
+
+Nếu `gh` không khả dụng, hiển thị link để user tạo trực tiếp:
+```
+https://github.com/<owner>/<repo>/compare/<base_branch>...<compare_branch>
 ```
 
 ---
