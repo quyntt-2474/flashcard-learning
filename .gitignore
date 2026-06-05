@@ -25,5 +25,3 @@ Thumbs.db
 *.suo
 *.user
 
-# Prisma
-backend/prisma/migrations/
