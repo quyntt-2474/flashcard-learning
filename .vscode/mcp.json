@@ -12,7 +12,6 @@
       "args": ["-y", "@notionhq/notion-mcp-server"],
       "env": {
         "NOTION_TOKEN": "${env:DEMO_NOTION_TOKEN}"
-        // Set xong cần restart VSCode để nó pick up env variable này, hoặc có thể dùng input để prompt token lên mỗi lần start server như figma bên dưới
       },
       "type": "stdio"
     },
