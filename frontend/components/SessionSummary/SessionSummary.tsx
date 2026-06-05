@@ -20,11 +20,12 @@ export default function SessionSummary({ summary, deckId }: Props) {
         <div className="text-4xl font-bold">{summary.accuracyPercent}%</div>
         <p className="text-sm text-foreground/60">Accuracy</p>
 
-        <div className="grid grid-cols-3 gap-2 pt-2">
+        <div className="grid grid-cols-4 gap-2 pt-2">
           {[
-            { label: 'Hard', value: summary.hard, color: 'text-orange-500' },
-            { label: 'Good', value: summary.good, color: 'text-blue-600' },
-            { label: 'Easy', value: summary.easy, color: 'text-emerald-600' },
+            { label: 'Again', value: summary.again, color: 'text-rose-500'    },
+            { label: 'Hard',  value: summary.hard,  color: 'text-orange-500'  },
+            { label: 'Good',  value: summary.good,  color: 'text-blue-600'    },
+            { label: 'Easy',  value: summary.easy,  color: 'text-emerald-600' },
           ].map(({ label, value, color }) => (
             <div key={label}>
               <p className={`text-xl font-bold ${color}`}>{value}</p>
