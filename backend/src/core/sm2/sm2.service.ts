@@ -51,7 +51,9 @@ export class Sm2Service {
       } else {
         interval = Math.round(interval * easeFactor);
       }
-      repetitions += 1;
+      if (numericGrade >= 4) {
+        repetitions += 1;
+      }
     }
 
     const dueDate = new Date();
