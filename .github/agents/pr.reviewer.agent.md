@@ -1,5 +1,4 @@
 ---
-name: pr-reviewer
 description: >
   Run pr-review skill on a GitHub PR, then post the findings as a structured GitHub review:
   one top-level summary comment + per-finding inline comments on exact code lines.

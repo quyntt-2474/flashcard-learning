@@ -1,7 +1,7 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { startTransition, useEffect, useState } from 'react';
 import { getOrCreateClientId } from '@/lib/clientId';
 
 const queryClient = new QueryClient({
@@ -23,7 +23,7 @@ export default function ClientIdProvider({
   useEffect(() => {
     // Ensure clientId is initialised in localStorage before first render
     getOrCreateClientId();
-    setReady(true);
+    startTransition(() => setReady(true));
   }, []);
 
   if (!ready) return null;
