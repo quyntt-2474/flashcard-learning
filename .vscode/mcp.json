@@ -1,0 +1,49 @@
+{
+  "servers": {
+    "github": {
+      "url": "https://api.githubcopilot.com/mcp/",
+      "type": "http",
+      "headers": {
+        "Authorization": "Bearer ${input:githubToken}"
+      }
+    },
+    "notion": {
+      "command": "npx",
+      "args": ["-y", "@notionhq/notion-mcp-server"],
+      "env": {
+        "NOTION_TOKEN": "${env:DEMO_NOTION_TOKEN}"
+      },
+      "type": "stdio"
+    },
+    "figma": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "figma-developer-mcp",
+        "--figma-api-key=${input:figmaToken}",
+        "--stdio"
+      ],
+      "type": "stdio"
+    }
+  },
+  "inputs": [
+    {
+      "id": "notionToken",
+      "type": "promptString",
+      "description": "Notion API Token",
+      "password": true
+    },
+    {
+      "id": "figmaToken",
+      "type": "promptString",
+      "description": "Figma API Token (DEMO_FIGMA_TOKEN)",
+      "password": true
+    },
+    {
+      "id": "githubToken",
+      "type": "promptString",
+      "description": "GitHub Personal Access Token (repo scope)",
+      "password": true
+    }
+  ]
+}

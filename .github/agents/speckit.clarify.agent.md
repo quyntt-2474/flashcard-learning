@@ -1,6 +1,6 @@
 ---
 description: Identify underspecified areas in the current feature spec by asking up to 5 highly targeted clarification questions and encoding answers back into the spec.
-handoffs: 
+handoffs:
   - label: Build Technical Plan
     agent: speckit.plan
     prompt: Create a plan for the spec. I am building with...
@@ -193,6 +193,18 @@ Execution steps:
    - Terminology consistency: same canonical term used across all updated sections.
 
 7. Write the updated spec back to `FEATURE_SPEC`.
+
+7a. **Update `specs/spec-summary.md`** (consolidated spec):
+   - Read all `specs/*/spec.md` files, ordered by directory name ascending (so higher-numbered features override earlier ones on conflicts).
+   - Merge them into `specs/spec-summary.md` following these rules:
+     - Update the `**Last updated**` header to today's date.
+     - User Stories: include all stories from all features; update any story modified by a later feature.
+     - Functional Requirements: later features override conflicting FRs from earlier ones; renumber sequentially.
+     - Key Entities: merge; later features' definitions override earlier ones for the same entity name.
+     - Success Criteria: merge and renumber sequentially; later features override conflicting SCs.
+     - Edge Cases: union of all edge cases; remove duplicates.
+     - Assumptions: union; later features override conflicting assumptions.
+   - Write the merged result to `specs/spec-summary.md`.
 
 8. Report completion (after questioning loop ends or early termination):
    - Number of questions asked & answered.
