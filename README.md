@@ -14,6 +14,7 @@ _DEMO KHÓA HỌC AGENTIC CODING COURSE_
 - **Bộ thẻ cá nhân**: Tạo, chỉnh sửa và xóa bộ thẻ & thẻ riêng.
 - **Tiến trình & CEFR**: Ước tính trình độ A1–C2 sau ≥ 20 lần ôn tập; hiển thị độ chính xác theo chủ đề.
 - **Không cần đăng nhập**: Dữ liệu được phân tách bằng `clientId` (UUID lưu trong `localStorage`).
+>  https://github.com/quyntt-2474/flashcard-learning/tree/develop/demo
 
 ---
 
