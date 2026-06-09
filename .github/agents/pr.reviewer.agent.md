@@ -4,8 +4,8 @@ description: >
   one top-level summary comment + per-finding inline comments on exact code lines.
   All comments are shown to user for approval before posting.
   Triggers: "review PR", "comment lên PR", "post review", "gửi review", "review và comment PR".
-tools: [read, run, search, mcp_github_pull_request_read, mcp_github_pull_request_review_write, mcp_github_add_comment_to_pending_review]
-argument-hint: 'PR number or URL + base branch + ticket spec, e.g. "PR #42 base: main spec: simplify grading — Hard/Good/Easy only"'
+tools: [read/getNotebookSummary, read/problems, read/readFile, read/viewImage, read/terminalSelection, read/terminalLastCommand, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/textSearch, search/usages, github/add_comment_to_pending_review, github/add_reply_to_pull_request_comment, github/pull_request_read, github/pull_request_review_write]
+argument-hint: 'PR number or URL (required). Base branch and ticket spec are optional — auto-detected from PR if omitted. e.g. "#42" or "#42 base: main spec: simplify grading"'
 ---
 
 # Agent: pr-reviewer
@@ -21,14 +21,16 @@ Bạn là một senior code reviewer. Nhiệm vụ:
 
 ## Bước 0 — Thu thập thông tin bắt buộc
 
-Parse từ `$ARGUMENTS`. Nếu thiếu, hỏi user:
+Parse từ `$ARGUMENTS`:
 
 | Input | Ví dụ | Bắt buộc |
 |---|---|---|
-| `pr_number` | `42` hoặc full URL | ✅ |
-| `repo` | `owner/repo-name` | ✅ (auto-detect từ git remote nếu thiếu) |
-| `base_branch` | `main`, `develop` | ✅ |
-| `ticket_spec` | mô tả yêu cầu của PR | ✅ |
+| `pr_number` | `42` hoặc full URL | ✅ Hỏi ngay nếu thiếu |
+| `repo` | `owner/repo-name` | Auto-detect từ git remote |
+| `base_branch` | `main`, `develop` | ⚪ Optional — lấy từ `base.ref` của PR nếu không cung cấp |
+| `ticket_spec` | mô tả yêu cầu của PR | ⚪ Optional — lấy từ PR description nếu không cung cấp |
+
+**Không tiếp tục** cho đến khi có `pr_number`.
 
 **Auto-detect repo từ git remote nếu user không cung cấp:**
 ```bash
@@ -36,7 +38,9 @@ git remote get-url origin
 # parse: https://github.com/owner/repo.git → owner/repo
 ```
 
-**Không tiếp tục** cho đến khi đủ 4 thông tin trên.
+**Auto-detect `base_branch`**: Lấy từ `base.ref` của PR ở Bước 1 nếu user không cung cấp.
+
+**Auto-detect `ticket_spec`**: Lấy từ `body` (PR description) của PR ở Bước 1 nếu user không cung cấp. Tóm tắt section "Summary" hoặc "Motivation & Context" làm spec.
 
 ---
 
@@ -112,7 +116,6 @@ Format:
 ## 🔍 Code Review — <PR title>
 
 **Spec**: <ticket_spec tóm tắt>
-**Reviewed by**: GitHub Copilot Code Review Agent
 **Diff scope**: <n> files changed
 
 ### Tổng quan
@@ -251,47 +254,56 @@ mcp_github_pull_request_read({
 }) → head.sha
 ```
 
-### 6B — Chuẩn bị danh sách inline comments
+### 6B — Tạo pending review (KHÔNG dùng `comments` array)
 
-Mỗi inline comment cần:
-```json
-{
-  "path": "backend/src/modules/sessions/sessions.service.ts",
-  "line": 42,
-  "body": "**[🔴 Nghiêm trọng]** ..."
-}
-```
+> ⚠️ **Đã xác nhận thực tế**: `mcp_github_pull_request_review_write` với `comments` array **KHÔNG post inline comments** — tool báo success nhưng comments bị drop silently. Phải dùng flow 3 bước bên dưới.
 
-> **Quan trọng**: `line` phải là **dòng trong diff** (position) hoặc **dòng trong file mới** (line number).
-> Dùng `git --no-pager diff <base>...<head> <file>` để xác định chính xác dòng trong diff context.
-
-### 6C — Tạo và submit review
-
+**Bước 6B-1**: Tạo pending review (chưa submit):
 ```
 mcp_github_pull_request_review_write({
+  method:    "create",
   owner:     "<owner>",
   repo:      "<repo>",
   pullNumber: <pr_number>,
-  commitId:  "<head.sha>",
-  body:      "<summary_comment>",
-  event:     "REQUEST_CHANGES" | "COMMENT" | "APPROVE",
-  comments: [
-    {
-      path: "backend/src/core/sm2/sm2.service.ts",
-      line: 88,
-      body: "**[🔴 Nghiêm trọng]** ..."
-    },
-    {
-      path: "frontend/components/GradeBar/GradeBar.tsx",
-      line: 23,
-      body: "**[🟡 Quan trọng]** ..."
-    }
-    // ... tất cả inline comments đã được approve
-  ]
+  commitID:  "<head.sha>"
+  // KHÔNG truyền event — để review ở trạng thái pending
 })
 ```
 
-> Dùng một lần gọi duy nhất để tạo review kèm tất cả inline comments — tránh spam nhiều review.
+**Bước 6B-2**: Add từng inline comment vào pending review:
+
+> **Quan trọng về `line`**: Phải là dòng nằm **trong hunk của diff** (context line hoặc `+` line). Ưu tiên dùng dòng `+` (dòng thực sự changed). Xác định bằng cách đọc patch từ `get_files`.
+
+```
+// Lặp cho mỗi inline comment (gọi tuần tự)
+mcp_github_add_comment_to_pending_review({
+  owner:       "<owner>",
+  repo:        "<repo>",
+  pullNumber:  <pr_number>,
+  path:        "backend/src/core/sm2/sm2.service.ts",
+  line:        88,          // dòng trong file mới, phải nằm trong diff hunk
+  side:        "RIGHT",     // bắt buộc
+  subjectType: "LINE",      // bắt buộc
+  body:        "**[🔴 Nghiêm trọng]** ..."
+})
+```
+
+### 6C — Submit pending review
+
+`body` của main comment chỉ gồm 2 dòng:
+
+```
+mcp_github_pull_request_review_write({
+  method:    "submit_pending",
+  owner:     "<owner>",
+  repo:      "<repo>",
+  pullNumber: <pr_number>,
+  event:     "REQUEST_CHANGES" | "COMMENT",  // KHÔNG dùng APPROVE cho PR của chính mình
+  body:      "**Spec**: <ticket_spec tóm tắt>\n**Diff scope**: <n> files changed"
+})
+```
+
+> ⚠️ **GitHub không cho phép APPROVE PR của chính mình** — nếu reviewer là author của PR, dùng `COMMENT` thay vì `APPROVE`.
 
 ---
 
@@ -321,6 +333,9 @@ mcp_github_pull_request_review_write({
 - **KHÔNG** post bất kỳ comment nào lên GitHub trước khi user approve ở Bước 5
 - **KHÔNG** submit review khi chưa có `head.sha` hợp lệ
 - **KHÔNG** tạo inline comment trên file không thuộc diff của PR
+- **KHÔNG** truyền `comments` array vào `mcp_github_pull_request_review_write` — không hoạt động, phải dùng `mcp_github_add_comment_to_pending_review`
+- **KHÔNG** dùng `APPROVE` khi reviewer là author của PR — dùng `COMMENT`
 - Mỗi inline comment phải có đủ: **vấn đề + lý do + gợi ý cụ thể**
+- `line` trong inline comment phải nằm trong hunk của diff — ưu tiên dòng `+` (changed lines)
 - Nếu không xác định được line number chính xác → đặt comment ở file level (line 1) và ghi rõ "File-level comment"
 - Nếu MCP tool fail → báo lỗi cụ thể, hỏi user có muốn retry không
