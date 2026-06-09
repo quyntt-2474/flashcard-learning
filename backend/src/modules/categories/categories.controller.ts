@@ -15,8 +15,8 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Get()
-  findAll() {
-    return this.categoriesService.findAll();
+  findAll(@ClientId() clientId: string) {
+    return this.categoriesService.findAll(clientId);
   }
 
   @Get(':id/decks')

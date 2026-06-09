@@ -5,7 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class CategoriesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(clientId: string) {
     const categories = await this.prisma.category.findMany({
       orderBy: { name: 'asc' },
     });
@@ -14,7 +14,10 @@ export class CategoriesService {
       categories.map(async (cat) => ({
         ...cat,
         deckCount: await this.prisma.deck.count({
-          where: { categoryId: cat.id },
+          where: {
+            categoryId: cat.id,
+            OR: [{ clientId }, { isPreloaded: true }],
+          },
         }),
       })),
     );
